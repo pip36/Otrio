@@ -119,7 +119,6 @@ export class OtrioGame {
     this.slots[location][size] = { color: this.currentTurn, size };
 
     this.detectWin();
-
     this.setNextPlayerTurn();
   }
 
@@ -136,7 +135,7 @@ export class OtrioGame {
   }
 
   private detectWin(): void {
-    // Three of same color in one slot
+    // Win - All pieces in a single slot are the same color
     for (const slot of this.slots) {
       if (
         slot.small?.color &&
@@ -150,7 +149,6 @@ export class OtrioGame {
       }
     }
 
-    // Three of same size in a row/column/diagonal
     const linesToCheck: [number, number, number][] = [
       // Rows
       [0, 1, 2],
@@ -165,44 +163,32 @@ export class OtrioGame {
       [2, 4, 6],
     ];
 
+    const sizes: (keyof Slot)[] = ["small", "medium", "large"];
+
     for (const [a, b, c] of linesToCheck) {
       const slotA = this.slots[a];
       const slotB = this.slots[b];
       const slotC = this.slots[c];
 
-      if (
-        slotA.small?.color &&
-        slotB.small?.color &&
-        slotC.small?.color &&
-        slotA.small.color === slotB.small.color &&
-        slotB.small.color === slotC.small.color
-      ) {
-        this.winningPlayer = slotA.small.color;
-        return;
+      // Win - All pieces in a line are the same color and size
+      for (const size of sizes) {
+        const pieceA = slotA[size];
+        const pieceB = slotB[size];
+        const pieceC = slotC[size];
+
+        if (
+          pieceA?.color &&
+          pieceB?.color &&
+          pieceC?.color &&
+          pieceA.color === pieceB.color &&
+          pieceB.color === pieceC.color
+        ) {
+          this.winningPlayer = pieceA.color;
+          return;
+        }
       }
 
-      if (
-        slotA.medium?.color &&
-        slotB.medium?.color &&
-        slotC.medium?.color &&
-        slotA.medium.color === slotB.medium.color &&
-        slotB.medium.color === slotC.medium.color
-      ) {
-        this.winningPlayer = slotA.medium.color;
-        return;
-      }
-
-      if (
-        slotA.large?.color &&
-        slotB.large?.color &&
-        slotC.large?.color &&
-        slotA.large.color === slotB.large.color &&
-        slotB.large.color === slotC.large.color
-      ) {
-        this.winningPlayer = slotA.large.color;
-        return;
-      }
-
+      // Win - Same color in ascending size (small -> medium -> large)
       if (
         slotA.small?.color &&
         slotB.medium?.color &&
@@ -214,6 +200,7 @@ export class OtrioGame {
         return;
       }
 
+      // Win - Same color in descending size (large -> medium -> small)
       if (
         slotA.large?.color &&
         slotB.medium?.color &&
